@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
 
 class MainDrawer extends StatelessWidget {
   const MainDrawer({super.key, required this.onSelectScreen});
@@ -50,9 +48,7 @@ class MainDrawer extends StatelessWidget {
                   fontSize: 24,
                 ),
           ),
-          onTap: () {
-            onSelectScreen('meals');
-          },
+          onTap: () => onSelectScreen('meals'),
         ),
         ListTile(
           leading: Icon(
@@ -67,9 +63,7 @@ class MainDrawer extends StatelessWidget {
                   fontSize: 24,
                 ),
           ),
-          onTap: () {
-            onSelectScreen('filters');
-          },
+          onTap: () => onSelectScreen('filters'),
         ),
       ]),
     );
