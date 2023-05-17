@@ -1,7 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meals_app/providers/meals_provider.dart';
-import 'dart:developer' as developer;
-
 import '../models/filter.dart';
 
 class FiltersNotifier extends StateNotifier<Map<Filter, bool>> {
