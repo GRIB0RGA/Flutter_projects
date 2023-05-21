@@ -1,10 +1,9 @@
-import 'dart:developer';
-import 'dart:ffi';
-
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shopping_list/data/categories.dart';
 import 'package:shopping_list/models/category.dart';
 import 'package:shopping_list/models/grocery_item.dart';
+import 'package:shopping_list/services/network-controller.service.dart';
 
 class NewItem extends StatefulWidget {
   const NewItem({super.key});
@@ -15,37 +14,52 @@ class NewItem extends StatefulWidget {
 
 class _NewItemState extends State<NewItem> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
+  bool _isSending = false;
 
   late String _enteredName;
   var _enteredQuantity = 1;
   var _selectedCategory = categories[Categories.vegetables]!;
 
-  void _saveItem() {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      Navigator.of(context).pop(
-        GroceryItem(
-          id: DateTime.now().toString(),
-          name: _enteredName,
-          quantity: _enteredQuantity,
-          category: _selectedCategory,
-        ),
-      );
-    }
-  }
-
-  void _reset() {
-    _formKey.currentState!.reset();
-  }
+  final networkControllerService = NetworkControllerService();
 
   @override
   void initState() {
     super.initState();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
+  void _setItemInFirebase() async {
+    final response = await networkControllerService.addGroceryItem(
+      name: _enteredName,
+      quantity: _enteredQuantity,
+      category: _selectedCategory.title,
+    );
+
+    final Map<String, dynamic> decodedResponse = json.decode(response.body);
+    _isSending = false;
+
+    if (context.mounted) {
+      Navigator.of(context).pop(
+        GroceryItem(
+            id: decodedResponse['name'],
+            name: _enteredName,
+            quantity: _enteredQuantity,
+            category: _selectedCategory),
+      );
+    }
+  }
+
+  void _saveItem() {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      setState(() {
+        _isSending = true;
+      });
+      _setItemInFirebase();
+    }
+  }
+
+  void _reset() {
+    _formKey.currentState!.reset();
   }
 
   @override
@@ -124,9 +138,18 @@ class _NewItemState extends State<NewItem> with SingleTickerProviderStateMixin {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  TextButton(onPressed: _reset, child: const Text('Reset')),
+                  TextButton(
+                      onPressed: _isSending ? null : _reset,
+                      child: const Text('Reset')),
                   ElevatedButton(
-                      onPressed: _saveItem, child: const Text('Add Item'))
+                    onPressed: _isSending ? null : _saveItem,
+                    child: _isSending
+                        ? const SizedBox(
+                            height: 16,
+                            width: 16,
+                            child: CircularProgressIndicator())
+                        : const Text('Add Item'),
+                  )
                 ],
               )
             ],

@@ -1,0 +1,1 @@
+const authorityUrl = 'flutter-grocery-list-ce004-default-rtdb.firebaseio.com';
